@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using TransactionApi.Services;
 
 namespace TransactionApi.Controllers
@@ -8,10 +9,13 @@ namespace TransactionApi.Controllers
     public class TransactionController : ControllerBase
     {
         private CsvService _csvHandler;
+        private readonly TransactionContext _context;
+        private readonly IConfiguration _configuration;
 
-        public TransactionController() 
+        public TransactionController(TransactionContext context,IConfiguration configuration)
         {
-            
+            _context = context;
+            _configuration= configuration;
         }
         // GET: api/<TransactionController>
         [HttpGet]
@@ -31,10 +35,10 @@ namespace TransactionApi.Controllers
         [HttpPost("upload")]
         public ActionResult Upload(IFormFile file)
         {
-            _csvHandler=new CsvService();
-            
-                var sad = _csvHandler.ReadFile(file);
-            
+            _csvHandler = new CsvService(_configuration);
+
+            var sad = _csvHandler.ReadFile(file);
+
 
             return Ok();
         }
