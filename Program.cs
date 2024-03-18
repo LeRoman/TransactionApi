@@ -1,6 +1,8 @@
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using TransactionApi.DatabaseContext;
+using TransactionApi.Interfaces;
 using TransactionApi.Services;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 

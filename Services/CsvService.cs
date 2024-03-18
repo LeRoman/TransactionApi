@@ -2,26 +2,28 @@
 using Microsoft.Data.SqlClient;
 using System.Globalization;
 using TransactionApi.Entities;
+using TransactionApi.Interfaces;
 
 namespace TransactionApi.Services
 {
     public class CsvService : ICsvService
     {
         private readonly IConfiguration _configuration;
+        private readonly string? _connectionString;
 
         public CsvService(IConfiguration configuration)
         {
             _configuration = configuration;
+            _connectionString = configuration.GetConnectionString("DefaultConnection");
         }
-        public List<Transaction> ReadFile(IFormFile file)
+
+        public void ReadFile(IFormFile file)
         {
             var transactionList = new List<Transaction>();
 
             using (var reader = new StreamReader(file.OpenReadStream()))
             using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
             {
-
-                var records = new List<Transaction>();
                 csv.Read();
                 csv.ReadHeader();
                 while (csv.Read())
@@ -31,29 +33,34 @@ namespace TransactionApi.Services
                         Id = csv.GetField("transaction_id"),
                         Name = csv.GetField("name"),
                         Email = csv.GetField("email"),
-                        Amount = Convert.ToDecimal(csv.GetField("amount").Trim('$'),CultureInfo.InvariantCulture),
+                        Amount = Convert.ToDouble(csv.GetField("amount").Trim('$'), CultureInfo.InvariantCulture),
                         TransactionDate = csv.GetField("transaction_date"),
                         Location = csv.GetField("client_location")
                     };
-                    records.Add(record);
 
-                }
-                transactionList = records;
-                for (int i = 0; i < transactionList.Count; i++)
-                {
-                    var nam = transactionList[i].Name;
-                    using (SqlConnection connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+                    using (SqlConnection connection = new SqlConnection(_connectionString))
                     {
-
                         connection.Open();
-                        SqlCommand command = SqlQueries.AddToDbQuery(transactionList[i]);
-                        command.Connection = connection;
-                        command.ExecuteNonQuery();
+
+                        SqlCommand getCommand = SqlQueries.GetFromDbQuery(record, connection);
+                        var sqlReader = getCommand.ExecuteReader();
+
+                        if (sqlReader.HasRows)
+                        {
+
+                            SqlCommand updateCommand = SqlQueries.UpdateDbQuery(record, connection);
+                            sqlReader.Close();
+                            updateCommand.ExecuteNonQuery();
+                        }
+
+                        else
+                        {
+                            SqlCommand addCommand = SqlQueries.AddToDbQuery(record, connection);
+                            addCommand.ExecuteNonQuery();
+                        }
                     }
                 }
-
             }
-            return transactionList;
         }
     }
 }
