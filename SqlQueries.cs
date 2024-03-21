@@ -1,4 +1,4 @@
-﻿using Microsoft.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using TransactionApi.Entities;
 
 namespace TransactionApi
@@ -11,8 +11,8 @@ namespace TransactionApi
 
             command.Parameters.AddRange(GetSqlParameters(transaction));
             command.Connection = connection;
-            command.CommandText = "INSERT INTO Transactions (Id,Name,Email,Amount,TransactionDate,Location)" +
-               " VALUES (@Id,@Name,@Email,@Amount, @TransactionDate, @Location)";
+            command.CommandText = "INSERT INTO Transactions (Id,Name,Email,Amount,TransactionDate,Location,TimeZone)" +
+               " VALUES (@Id,@Name,@Email,@Amount, @TransactionDate, @Location, @TimeZone)";
 
             return command;
         }
@@ -33,7 +33,7 @@ namespace TransactionApi
             command.Parameters.AddRange(GetSqlParameters(transaction));
             command.Connection = connection;
             command.CommandText = "UPDATE Transactions SET Name=@Name, Email=@Email, Amount=@Amount," +
-                "TransactionDate=@TransactionDate, Location=@Location" +
+                "TransactionDate=@TransactionDate, Location=@Location, TimeZone=@TimeZone" +
                " WHERE @Id=Id";
 
             return command;
@@ -45,10 +45,11 @@ namespace TransactionApi
             var nameParam = new SqlParameter("@Name", transaction.Name);
             var emailParam = new SqlParameter("@Email", transaction.Email);
             var amountParam = new SqlParameter("@Amount", transaction.Amount);
-            var dateParam = new SqlParameter("@TransactionDate", transaction.TransactionDate);
+            var dateParam = new SqlParameter("@TransactionDate", transaction.TransactionDate.ToUniversalTime());
             var locationParam = new SqlParameter("@Location", transaction.Location);
+            var timeZoneParam = new SqlParameter("@TimeZone", transaction.TimeZone);
 
-            return new[] { idParam, nameParam, emailParam, amountParam, dateParam, locationParam };
+            return new[] { idParam, nameParam, emailParam, amountParam, dateParam, locationParam, timeZoneParam };
         }
     }
 }

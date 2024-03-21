@@ -3,6 +3,8 @@ using Microsoft.Data.SqlClient;
 using System.Globalization;
 using TransactionApi.Entities;
 using TransactionApi.Interfaces;
+using GeoTimeZone;
+using NodaTime;
 
 namespace TransactionApi.Services
 {
@@ -19,24 +21,19 @@ namespace TransactionApi.Services
 
         public void ReadFile(IFormFile file)
         {
-            var transactionList = new List<Transaction>();
 
-            using (var reader = new StreamReader(file.OpenReadStream()))
-            using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
+            using (var streamReader = new StreamReader(file.OpenReadStream()))
+            using (var csvReader = new CsvReader(streamReader, CultureInfo.InvariantCulture))
             {
-                csv.Read();
-                csv.ReadHeader();
-                while (csv.Read())
+                csvReader.Read();
+                csvReader.ReadHeader();
+
+                csvReader.Context.RegisterClassMap<TransactionMap>();
+
+                while (csvReader.Read())
                 {
-                    var record = new Transaction
-                    {
-                        Id = csv.GetField("transaction_id"),
-                        Name = csv.GetField("name"),
-                        Email = csv.GetField("email"),
-                        Amount = Convert.ToDouble(csv.GetField("amount").Trim('$'), CultureInfo.InvariantCulture),
-                        TransactionDate = csv.GetField("transaction_date"),
-                        Location = csv.GetField("client_location")
-                    };
+                    var record = csvReader.GetRecord<Transaction>();
+                    record = SetOffSetAndTimeZone(record);
 
                     using (SqlConnection connection = new SqlConnection(_connectionString))
                     {
@@ -47,7 +44,6 @@ namespace TransactionApi.Services
 
                         if (sqlReader.HasRows)
                         {
-
                             SqlCommand updateCommand = SqlQueries.UpdateDbQuery(record, connection);
                             sqlReader.Close();
                             updateCommand.ExecuteNonQuery();
@@ -55,12 +51,29 @@ namespace TransactionApi.Services
 
                         else
                         {
+                            sqlReader.Close();
                             SqlCommand addCommand = SqlQueries.AddToDbQuery(record, connection);
                             addCommand.ExecuteNonQuery();
                         }
                     }
                 }
             }
+        }
+
+        
+
+        private Transaction SetOffSetAndTimeZone(Transaction transaction)
+        {
+            var coordinates = transaction.Location.Split(',');
+            var latitude = double.Parse(coordinates[0], CultureInfo.InvariantCulture);
+            var longtitude = double.Parse(coordinates[1], CultureInfo.InvariantCulture);
+            var timezone = TimeZoneLookup.GetTimeZone(latitude, longtitude).Result;
+
+            transaction.TimeZone = timezone;
+            var offsetHours = DateTimeZoneProviders.Tzdb.GetZoneOrNull(timezone).MinOffset.ToTimeSpan().Hours;
+            transaction.TransactionDate = new DateTimeOffset(transaction.TransactionDate.DateTime, new TimeSpan(offsetHours, 0, 0));
+
+            return transaction;
         }
     }
 }
