@@ -1,4 +1,4 @@
-using Microsoft.Data.SqlClient;
+﻿using Microsoft.Data.SqlClient;
 using TransactionApi.Entities;
 
 namespace TransactionApi
@@ -23,6 +23,24 @@ namespace TransactionApi
             command.Parameters.AddRange(GetSqlParameters(transaction));
             command.Connection = connection;
             command.CommandText = "SELECT * FROM Transactions WHERE Id=@Id";
+
+            return command;
+        }
+
+        internal static SqlCommand Get2023(SqlConnection connection)
+        {
+            SqlCommand command = new SqlCommand();
+            command.Connection = connection;
+            command.CommandText =" SELECT * FROM Transactions WHERE YEAR(Transactiondate) = 2023";
+
+            return command;
+        }
+
+        internal static SqlCommand GetJanuary2024(SqlConnection connection)
+        {
+            SqlCommand command = new SqlCommand();
+            command.Connection = connection;
+            command.CommandText = "SELECT * FROM Transactions WHERE Transactiondate <= '01.31.2024'  AND Transactiondate >= '01.01.2024' ";
 
             return command;
         }

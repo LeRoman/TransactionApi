@@ -12,7 +12,8 @@ namespace TransactionApi
             Map(m => m.Name).Name("name");
             Map(m => m.Email).Name("email");
             Map(m => m.Amount).Name("amount").Convert(args => Convert.ToDouble(args.Row.GetField("amount").Trim('$'), CultureInfo.InvariantCulture));
-            Map(m => m.TransactionDate).Name("transaction_date").TypeConverterOption.Format("yyyy-MM-dd HH:mm:ss");   
+            Map(m => m.TransactionDate).Name("transaction_date").TypeConverterOption.Format("yyyy-MM-dd HH:mm:ss");
+            
             Map(m => m.Location).Name("client_location");
         }
     }

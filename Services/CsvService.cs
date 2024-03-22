@@ -33,7 +33,7 @@ namespace TransactionApi.Services
                 while (csvReader.Read())
                 {
                     var record = csvReader.GetRecord<Transaction>();
-                    record = SetOffSetAndTimeZone(record);
+                    record = SetTimeToUtcAndTimeZone(record);
 
                     using (SqlConnection connection = new SqlConnection(_connectionString))
                     {
@@ -62,16 +62,19 @@ namespace TransactionApi.Services
 
         
 
-        private Transaction SetOffSetAndTimeZone(Transaction transaction)
+        private Transaction SetTimeToUtcAndTimeZone(Transaction transaction)
         {
             var coordinates = transaction.Location.Split(',');
             var latitude = double.Parse(coordinates[0], CultureInfo.InvariantCulture);
             var longtitude = double.Parse(coordinates[1], CultureInfo.InvariantCulture);
             var timezone = TimeZoneLookup.GetTimeZone(latitude, longtitude).Result;
 
+            
+            var offsetHours = DateTimeZoneProviders.Tzdb.GetZoneOrNull(timezone)
+                .MaxOffset.ToTimeSpan().Hours;
+            transaction.TransactionDate = new DateTimeOffset(transaction.TransactionDate, new TimeSpan(offsetHours, 0, 0)).UtcDateTime;
+
             transaction.TimeZone = timezone;
-            var offsetHours = DateTimeZoneProviders.Tzdb.GetZoneOrNull(timezone).MinOffset.ToTimeSpan().Hours;
-            transaction.TransactionDate = new DateTimeOffset(transaction.TransactionDate.DateTime, new TimeSpan(offsetHours, 0, 0));
 
             return transaction;
         }
