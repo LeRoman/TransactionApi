@@ -1,4 +1,9 @@
 
+using Microsoft.EntityFrameworkCore;
+using TransactionApi.DatabaseContext;
+using TransactionApi.Interfaces;
+using TransactionApi.Services;
+
 namespace TransactionApi
 {
     public class Program
@@ -13,6 +18,12 @@ namespace TransactionApi
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            builder.Services.AddTransient<ICsvService, CsvService>();
+            builder.Services.AddTransient<ITransactionService, TransactionService>();
+            builder.Services.AddTransient<IExportService, ExportService>();
+
+            builder.Services.AddDbContext<TransactionContext>(options
+                => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
             var app = builder.Build();
 
