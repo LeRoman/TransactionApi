@@ -1,7 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using GeoTimeZone;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TransactionApi.DatabaseContext;
 using TransactionApi.Interfaces;
+using NodaTime;
+using NodaTime.TimeZones;
+using TransactionApi.Entities;
 
 namespace TransactionApi.Controllers
 {
@@ -10,29 +14,43 @@ namespace TransactionApi.Controllers
     public class TransactionController : ControllerBase
     {
         private ICsvService _csvHandler;
+        private ITransactionService _transactionService;
         private readonly IConfiguration _configuration;
 
-        public TransactionController(TransactionContext context,IConfiguration configuration, ICsvService csvservice)
+        public TransactionController(TransactionContext context,IConfiguration configuration, ICsvService csvservice, ITransactionService transactionService)
         {
             _configuration= configuration;
             _csvHandler = csvservice;
+            _transactionService=transactionService;
         }
-        // GET: api/<TransactionController>
-        [HttpGet]
-        public IEnumerable<string> Get()
+        
+
+        [HttpGet("transactions/january-2024")]
+        public IEnumerable<Transaction> GetTransactionsForJanuary2024()
         {
-            return new string[] { "value1", "value2" };
+            return _transactionService.GetTransactionsJanuary2024();
         }
 
-        // GET api/<TransactionController>/5
-        [HttpGet("{id}")]
-        public string Get(string id)
+
+        [HttpGet("transactions/2023")]
+        public IEnumerable<Transaction> GetTransactionsFor2023()
         {
-
-            return "value";
+            return _transactionService.GetTransactions2023();
         }
 
-        // POST api/<TransactionController>
+        [HttpGet("transactions/2023-in-user-timezone")]
+        public IEnumerable<Transaction> GetTransactionsFor2023InUserTimeZone()
+        {
+            return _transactionService.GetTransactions2023InUserTimeZone();
+        }
+
+        [HttpGet("transactions/january-2024-in-user-timezone")]
+        public IEnumerable<Transaction> GetTransactionsForJanuary2024InUserTimeZone()
+        {
+            return _transactionService.GetTransactionsJanuary2024InUserTimeZone();
+        }
+
+
         [HttpPost("upload")]
         public ActionResult Upload(IFormFile file)
         {
@@ -40,24 +58,12 @@ namespace TransactionApi.Controllers
             {
                 _csvHandler.ReadFile(file);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return BadRequest();
+                return BadRequest(ex.Message);
             }
-            
+
             return Ok();
-        }
-
-        // PUT api/<TransactionController>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
-        {
-        }
-
-        // DELETE api/<TransactionController>/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
         }
     }
 }

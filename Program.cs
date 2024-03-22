@@ -21,6 +21,7 @@ namespace TransactionApi
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             builder.Services.AddTransient<ICsvService,CsvService>();
+            builder.Services.AddTransient<ITransactionService, TransactionService>();
             builder.Services.AddDbContext<TransactionContext>(options 
                 => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
