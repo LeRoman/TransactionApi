@@ -15,13 +15,15 @@ namespace TransactionApi.Controllers
     {
         private ICsvService _csvHandler;
         private ITransactionService _transactionService;
+        private readonly IExportService _exportService;
         private readonly IConfiguration _configuration;
 
-        public TransactionController(TransactionContext context,IConfiguration configuration, ICsvService csvservice, ITransactionService transactionService)
+        public TransactionController(IConfiguration configuration, ICsvService csvservice, ITransactionService transactionService, IExportService exportService)
         {
             _configuration= configuration;
             _csvHandler = csvservice;
             _transactionService=transactionService;
+            _exportService=exportService;
         }
         
 
@@ -65,5 +67,16 @@ namespace TransactionApi.Controllers
 
             return Ok();
         }
+
+        [HttpGet("export-to-excel")]
+        public ActionResult ExportToExcel()
+        {
+            var transactionslist =_transactionService.GetAllTransactions();
+            var file = _exportService.GenerateExcel("transactions",transactionslist);
+            return File(file, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "transactions.xlsx");
+        }
     }
+    
+
+
 }
