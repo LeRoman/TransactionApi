@@ -31,7 +31,16 @@ namespace TransactionApi
         {
             SqlCommand command = new SqlCommand();
             command.Connection = connection;
-            command.CommandText =" SELECT * FROM Transactions WHERE YEAR(Transactiondate) = 2023";
+            command.CommandText = " SELECT * FROM Transactions WHERE YEAR(Transactiondate) = 2023";
+
+            return command;
+        }
+
+        internal static SqlCommand GetAll(SqlConnection connection)
+        {
+            SqlCommand command = new SqlCommand();
+            command.Connection = connection;
+            command.CommandText = "SELECT * FROM Transactions";
 
             return command;
         }

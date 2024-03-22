@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.Data.SqlClient;
+﻿using Microsoft.Data.SqlClient;
 using NodaTime;
 using TransactionApi.Entities;
 using TransactionApi.Interfaces;
@@ -14,6 +13,26 @@ namespace TransactionApi.Services
         {
             _connectionString = configuration.GetConnectionString("DefaultConnection");
         }
+
+        public IEnumerable<Transaction> GetAllTransactions()
+        {
+            var transactionList = new List<Transaction>();
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                connection.Open();
+
+                SqlCommand getCommand = SqlQueries.GetAll(connection);
+                var sqlReader = getCommand.ExecuteReader();
+                while (sqlReader.Read())
+                {
+                    transactionList.Add(GetTransactionFromRow(sqlReader));
+                }
+                sqlReader.Close();
+            }
+            return transactionList
+                .Select(x => setToClientDateTime(x));
+        }
+
         public IEnumerable<Transaction> GetTransactions2023()
         {
             var transactionList = new List<Transaction>();
@@ -50,7 +69,7 @@ namespace TransactionApi.Services
             }
             return transactionList
                 .Select(x => setToApiUserDateTime(x))
-                .Where(y=>y.TransactionDate.Year==2023);
+                .Where(y => y.TransactionDate.Year == 2023);
         }
 
         public IEnumerable<Transaction> GetTransactionsJanuary2024InUserTimeZone()
@@ -71,8 +90,8 @@ namespace TransactionApi.Services
 
             return transactionList
                 .Select(x => setToApiUserDateTime(x))
-                .Where(x=>x.TransactionDate.Year==2024)
-                .Where(x=>x.TransactionDate.Month==1);
+                .Where(x => x.TransactionDate.Year == 2024)
+                .Where(x => x.TransactionDate.Month == 1);
         }
 
         public IEnumerable<Transaction> GetTransactionsJanuary2024()
@@ -92,7 +111,7 @@ namespace TransactionApi.Services
             }
 
             return transactionList
-                .Select(x=>setToClientDateTime(x));
+                .Select(x => setToClientDateTime(x));
 
         }
 
@@ -120,7 +139,7 @@ namespace TransactionApi.Services
         Transaction setToApiUserDateTime(Transaction transaction)
         {
             int hours = DateTimeZoneProviders.Tzdb.GetSystemDefault().MaxOffset.ToTimeSpan().Hours;
-            int minHours= DateTimeZoneProviders.Tzdb.GetSystemDefault().MinOffset.ToTimeSpan().Hours;
+            int minHours = DateTimeZoneProviders.Tzdb.GetSystemDefault().MinOffset.ToTimeSpan().Hours;
             transaction.TransactionDate = transaction.TransactionDate.AddHours(hours);
             return transaction;
         }

@@ -8,6 +8,7 @@ namespace TransactionApi.Interfaces
         IEnumerable<Transaction> GetTransactions2023();
         IEnumerable<Transaction> GetTransactionsJanuary2024InUserTimeZone();
         IEnumerable<Transaction> GetTransactions2023InUserTimeZone();
+        public IEnumerable<Transaction> GetAllTransactions();
 
     }
 }
