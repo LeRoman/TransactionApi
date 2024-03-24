@@ -8,12 +8,12 @@ using NodaTime;
 
 namespace TransactionApi.Services
 {
-    public class CsvService : ICsvService
+    public class CsvImportService : ICsvImportService
     {
         private readonly IConfiguration _configuration;
         private readonly string? _connectionString;
 
-        public CsvService(IConfiguration configuration)
+        public CsvImportService(IConfiguration configuration)
         {
             _configuration = configuration;
             _connectionString = configuration.GetConnectionString("DefaultConnection");
@@ -59,8 +59,6 @@ namespace TransactionApi.Services
                 }
             }
         }
-
-        
 
         private Transaction SetTimeToUtcAndTimeZone(Transaction transaction)
         {

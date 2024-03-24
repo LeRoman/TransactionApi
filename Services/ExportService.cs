@@ -1,5 +1,4 @@
 ﻿using ClosedXML.Excel;
-using Microsoft.AspNetCore.Mvc;
 using System.Data;
 using TransactionApi.Entities;
 using TransactionApi.Interfaces;
@@ -12,7 +11,7 @@ namespace TransactionApi.Services
 
         public ExportService(ITransactionService transactionService)
         {
-            _transactionService=transactionService;
+            _transactionService = transactionService;
         }
 
         public byte[] GenerateExcel(string fileName, IEnumerable<Transaction> transactions)
@@ -31,23 +30,20 @@ namespace TransactionApi.Services
 
             foreach (var transaction in transactions)
             {
-                dataTable.Rows.Add(transaction.Id, transaction.Name,transaction.Email,transaction.Amount,
+                dataTable.Rows.Add(transaction.Id, transaction.Name, transaction.Email, transaction.Amount,
                     transaction.TransactionDate, transaction.Location, transaction.TimeZone);
             }
 
             using (XLWorkbook wb = new XLWorkbook())
             {
-                wb.Worksheets.Add(dataTable);
+                var workSheet = wb.Worksheets.Add(dataTable);
+                workSheet.Worksheet.Columns().AdjustToContents();
                 using (MemoryStream stream = new MemoryStream())
                 {
                     wb.SaveAs(stream);
                     return stream.ToArray();
                 }
             }
-
-
         }
-
-       
     }
 }

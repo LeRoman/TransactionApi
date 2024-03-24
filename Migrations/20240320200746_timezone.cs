@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace TransactionApi.Migrations
 {
     /// <inheritdoc />
-    public partial class timezone : Migration
+    public partial class Timezone : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
