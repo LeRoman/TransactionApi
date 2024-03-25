@@ -1,5 +1,6 @@
 ﻿using Microsoft.Data.SqlClient;
 using NodaTime;
+using TransactionApi.DbQueries;
 using TransactionApi.Entities;
 using TransactionApi.Interfaces;
 
@@ -21,7 +22,7 @@ namespace TransactionApi.Services
             {
                 connection.Open();
 
-                SqlCommand getCommand = SqlQueries.GetAll(connection);
+                SqlCommand getCommand = SqlQueries.GetAllTransactionsQuery(connection);
                 var sqlReader = getCommand.ExecuteReader();
                 while (sqlReader.Read())
                 {
@@ -40,7 +41,7 @@ namespace TransactionApi.Services
             {
                 connection.Open();
 
-                SqlCommand getCommand = SqlQueries.Get2023(connection);
+                SqlCommand getCommand = SqlQueries.GetTransactions2023(connection);
                 var sqlReader = getCommand.ExecuteReader();
                 while (sqlReader.Read())
                 {
@@ -59,7 +60,7 @@ namespace TransactionApi.Services
             {
                 connection.Open();
 
-                SqlCommand getCommand = SqlQueries.Get2023(connection);
+                SqlCommand getCommand = SqlQueries.GetTransactions2023(connection);
                 var sqlReader = getCommand.ExecuteReader();
                 while (sqlReader.Read())
                 {
@@ -79,7 +80,7 @@ namespace TransactionApi.Services
             {
                 connection.Open();
 
-                SqlCommand getCommand = SqlQueries.GetJanuary2024(connection);
+                SqlCommand getCommand = SqlQueries.GetTransactionsJanuary2024(connection);
                 var sqlReader = getCommand.ExecuteReader();
                 while (sqlReader.Read())
                 {
@@ -101,7 +102,7 @@ namespace TransactionApi.Services
             {
                 connection.Open();
 
-                SqlCommand getCommand = SqlQueries.GetJanuary2024(connection);
+                SqlCommand getCommand = SqlQueries.GetTransactionsJanuary2024(connection);
                 var sqlReader = getCommand.ExecuteReader();
                 while (sqlReader.Read())
                 {

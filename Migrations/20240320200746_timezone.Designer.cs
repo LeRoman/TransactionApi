@@ -13,7 +13,7 @@ namespace TransactionApi.Migrations
 {
     [DbContext(typeof(TransactionContext))]
     [Migration("20240320200746_timezone")]
-    partial class timezone
+    partial class Timezone
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

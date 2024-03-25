@@ -8,7 +8,6 @@
         public double Amount { get; set; }
         public DateTime TransactionDate { get; set; }
         public string Location { get; set; }
-
         public string TimeZone{ get; set; }
 
 

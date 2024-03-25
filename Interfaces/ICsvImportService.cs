@@ -2,7 +2,7 @@
 
 namespace TransactionApi.Interfaces
 {
-    public interface ICsvService
+    public interface ICsvImportService
     {
         void ReadFile(IFormFile file);
     }
