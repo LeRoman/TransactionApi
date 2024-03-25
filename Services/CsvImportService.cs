@@ -5,6 +5,8 @@ using TransactionApi.Entities;
 using TransactionApi.Interfaces;
 using GeoTimeZone;
 using NodaTime;
+using TransactionApi.MappingProfiles;
+using TransactionApi.DbQueries;
 
 namespace TransactionApi.Services
 {
@@ -21,7 +23,6 @@ namespace TransactionApi.Services
 
         public void ReadFile(IFormFile file)
         {
-
             using (var streamReader = new StreamReader(file.OpenReadStream()))
             using (var csvReader = new CsvReader(streamReader, CultureInfo.InvariantCulture))
             {
@@ -66,8 +67,7 @@ namespace TransactionApi.Services
             var latitude = double.Parse(coordinates[0], CultureInfo.InvariantCulture);
             var longtitude = double.Parse(coordinates[1], CultureInfo.InvariantCulture);
             var timezone = TimeZoneLookup.GetTimeZone(latitude, longtitude).Result;
-
-            
+ 
             var offsetHours = DateTimeZoneProviders.Tzdb.GetZoneOrNull(timezone)
                 .MaxOffset.ToTimeSpan().Hours;
             transaction.TransactionDate = new DateTimeOffset(transaction.TransactionDate, new TimeSpan(offsetHours, 0, 0)).UtcDateTime;

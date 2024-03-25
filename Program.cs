@@ -1,4 +1,3 @@
-
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
@@ -14,10 +13,8 @@ namespace TransactionApi
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
 
             builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(options =>
             {
@@ -31,7 +28,7 @@ namespace TransactionApi
                 options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
             });
             builder.Services.AddTransient<ICsvImportService, CsvImportService>();
-            builder.Services.AddTransient<ITransactionService, TransactionService>();
+            builder.Services.AddScoped<ITransactionService, TransactionService>();
             builder.Services.AddTransient<IExportService, ExportService>();
 
             builder.Services.AddDbContext<TransactionContext>(options
@@ -39,7 +36,6 @@ namespace TransactionApi
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
