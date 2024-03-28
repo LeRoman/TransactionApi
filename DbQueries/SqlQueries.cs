@@ -7,8 +7,8 @@ namespace TransactionApi.DbQueries
     {
         public static SqlCommand AddToDbQuery(Transaction transaction, SqlConnection connection)
         {
-            var commandText = "INSERT INTO Transactions (Id,Name,Email,Amount,TransactionDate,Location,TimeZone)" +
-               " VALUES (@Id,@Name,@Email,@Amount, @TransactionDate, @Location, @TimeZone)";
+            var commandText = "INSERT INTO Transactions (Id,Name,Email,Amount,TransactionDate, TransactionDateUTC, Location,TimeZone)" +
+               " VALUES (@Id,@Name,@Email,@Amount, @TransactionDate,@TransactionDateUtc, @Location, @TimeZone)";
             var command = new SqlCommand(commandText, connection);
             command.Parameters.AddRange(GetSqlParameters(transaction));
 
@@ -24,11 +24,21 @@ namespace TransactionApi.DbQueries
             return command;
         }
 
-        internal static SqlCommand GetTransactions2023(SqlConnection connection)
+        internal static SqlCommand GetByDateInterval(SqlConnection connection)
         {
-            var commandText = "SELECT * FROM Transactions WHERE YEAR(Transactiondate) = 2023";
-            return new SqlCommand(commandText, connection);
+            var commandText = "SELECT * FROM Transactions WHERE TransactionDate >=@dateFrom AND TransactionDate<=@dateTo";
+            var command = new SqlCommand(commandText, connection);
+            return command;
         }
+
+        internal static SqlCommand GetByDateIntervalInUserTimezone(SqlConnection connection)
+        {
+            var commandText = "SELECT * FROM Transactions WHERE TransactionDateUTC >=@dateFrom AND TransactionDateUTC<=@dateTo";
+            var command = new SqlCommand(commandText, connection);
+            return command;
+        }
+
+
 
         internal static SqlCommand GetAllTransactionsQuery(SqlConnection connection)
         {
@@ -36,19 +46,10 @@ namespace TransactionApi.DbQueries
             return new SqlCommand(commandText, connection);
         }
 
-        internal static SqlCommand GetTransactionsJanuary2024(SqlConnection connection)
-        {
-            var commandText = "SELECT * FROM Transactions WHERE Transactiondate <= '01.31.2024' " +
-                " AND Transactiondate >= '01.01.2024' ";
-            var command = new SqlCommand(commandText, connection);
-
-            return command;
-        }
-
         internal static SqlCommand UpdateDbQuery(Transaction transaction, SqlConnection connection)
         {
             var commandText = "UPDATE Transactions SET Name=@Name, Email=@Email, Amount=@Amount," +
-                "TransactionDate=@TransactionDate, Location=@Location, TimeZone=@TimeZone" +
+                "TransactionDate=@TransactionDate,TransactionDateUTC=@TransactionDateUTC, Location=@Location, TimeZone=@TimeZone" +
                 " WHERE @Id=Id";
             var command = new SqlCommand(commandText, connection);
             command.Parameters.AddRange(GetSqlParameters(transaction));
@@ -62,11 +63,12 @@ namespace TransactionApi.DbQueries
             var nameParam = new SqlParameter("@Name", transaction.Name);
             var emailParam = new SqlParameter("@Email", transaction.Email);
             var amountParam = new SqlParameter("@Amount", transaction.Amount);
-            var dateParam = new SqlParameter("@TransactionDate", transaction.TransactionDate.ToUniversalTime());
+            var dateParam = new SqlParameter("@TransactionDate", transaction.TransactionDate);
+            var dateParamUTC = new SqlParameter("@TransactionDateUtc", transaction.TransactionDateUTC);
             var locationParam = new SqlParameter("@Location", transaction.Location);
             var timeZoneParam = new SqlParameter("@TimeZone", transaction.TimeZone);
 
-            return new[] { idParam, nameParam, emailParam, amountParam, dateParam, locationParam, timeZoneParam };
+            return new[] { idParam, nameParam, emailParam, amountParam, dateParam, dateParamUTC, locationParam, timeZoneParam };
         }
     }
 }
