@@ -16,47 +16,37 @@ namespace TransactionApi.Controllers
 
         public TransactionController(IConfiguration configuration, ICsvImportService csvservice, ITransactionService transactionService, IExportService exportService)
         {
-            _configuration= configuration;
+            _configuration = configuration;
             _csvHandler = csvservice;
-            _transactionService=transactionService;
-            _exportService=exportService;
+            _transactionService = transactionService;
+            _exportService = exportService;
         }
 
         /// <summary>
-        /// Returns transactions made in January 2024
+        /// Return transaction in requested time interval
         /// </summary>
-        [HttpGet("january-2024")]
-        public IEnumerable<Transaction> GetTransactionsForJanuary2024()
+        /// <param name="dateFrom" > Date interval start parameter</param>
+        /// <param name="dateTo" >Date interval end parameter</param>
+        /// <response code="200">Returns a JSON</response>
+        [HttpGet("by-date-interval")]
+        public IEnumerable<Transaction> GetByDateInterval(DateTime dateFrom, DateTime dateTo)
         {
-            return _transactionService.GetTransactionsJanuary2024();
+            return _transactionService.GetTransactionsByDateInterval(dateFrom, dateTo);
         }
 
         /// <summary>
-        /// Returns transactions made in 2023
+        /// Return transaction in requested time interval(in user timezone)
         /// </summary>
-        [HttpGet("transactions/2023")]
-        public IEnumerable<Transaction> GetTransactionsFor2023()
+        /// <param name="dateFrom" > Date interval start parameter</param>
+        /// <param name="dateTo" >Date interval end parameter</param>
+        /// <param name="location" >user location parameter (coordinates)</param>
+        /// <response code="200">Returns a JSON</response>
+        [HttpGet("by-date-interval-in-user-timezone")]
+        public IEnumerable<Transaction> GetByDateIntervalInUserTimezone(DateTime dateFrom, DateTime dateTo, string location)
         {
-            return _transactionService.GetTransactions2023();
+            return _transactionService.GetTransactionsByDateIntervalInUserTimezone(dateFrom, dateTo, location);
         }
 
-        /// <summary>
-        /// Returns transactions made in 2023 (in user timezone)
-        /// </summary>
-        [HttpGet("2023-in-user-timezone")]
-        public IEnumerable<Transaction> GetTransactionsFor2023InUserTimeZone()
-        {
-            return _transactionService.GetTransactions2023InUserTimeZone();
-        }
-
-        /// <summary>
-        /// Returns transactions made in January 2024 (in user timezone)
-        /// </summary>
-        [HttpGet("january-2024-in-user-timezone")]
-        public IEnumerable<Transaction> GetTransactionsForJanuary2024InUserTimeZone()
-        {
-            return _transactionService.GetTransactionsJanuary2024InUserTimeZone();
-        }
 
         /// <summary>
         /// Imports csv file
@@ -86,12 +76,12 @@ namespace TransactionApi.Controllers
         [HttpGet("export-to-excel")]
         public ActionResult ExportToExcel()
         {
-            var transactionslist =_transactionService.GetAllTransactions();
-            var file = _exportService.GenerateExcel("transactions",transactionslist);
+            var transactionslist = _transactionService.GetAllTransactions();
+            var file = _exportService.GenerateExcel("transactions", transactionslist);
             return File(file, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "transactions.xlsx");
         }
     }
-    
+
 
 
 }

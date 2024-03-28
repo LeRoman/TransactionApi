@@ -15,6 +15,55 @@ namespace TransactionApi.Services
             _connectionString = configuration.GetConnectionString("DefaultConnection");
         }
 
+
+        public IEnumerable<Transaction> GetTransactionsByDateInterval(DateTime dateFrom, DateTime dateTo)
+        {
+            var transactionListClientsTime = new List<Transaction>();
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                connection.Open();
+
+                SqlCommand getCommand = SqlQueries.GetByDateInterval(connection);
+                getCommand.Parameters.Add(new SqlParameter("@dateFrom", dateFrom));
+                getCommand.Parameters.Add(new SqlParameter("@dateTo", dateTo));
+                var sqlReader = getCommand.ExecuteReader();
+                while (sqlReader.Read())
+                {
+                    transactionListClientsTime.Add(GetTransactionFromRow(sqlReader));
+                }
+                sqlReader.Close();
+            }
+
+            return transactionListClientsTime;
+        }
+
+        public IEnumerable<Transaction> GetTransactionsByDateIntervalInUserTimezone(DateTime dateFrom, DateTime dateTo, string location)
+        {
+            var offsetHours = TimeHelper.GetOffsetHoursByLocation(location);
+
+            // bring  dateTime parameters to Utc time
+            var dateFromInUTC = TimeHelper.GetUtcDateTime(dateFrom, offsetHours);
+            var dateToInUTC = TimeHelper.GetUtcDateTime(dateTo, offsetHours);
+
+            var transactionListClientsTime = new List<Transaction>();
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                connection.Open();
+
+                SqlCommand getCommand = SqlQueries.GetByDateIntervalInUserTimezone(connection);
+                getCommand.Parameters.Add(new SqlParameter("@dateFrom", dateFromInUTC));
+                getCommand.Parameters.Add(new SqlParameter("@dateTo", dateToInUTC));
+                var sqlReader = getCommand.ExecuteReader();
+                while (sqlReader.Read())
+                {
+                    transactionListClientsTime.Add(GetTransactionFromRow(sqlReader));
+                }
+                sqlReader.Close();
+            }
+
+            return transactionListClientsTime;
+        }
+
         public IEnumerable<Transaction> GetAllTransactions()
         {
             var transactionList = new List<Transaction>();
@@ -30,95 +79,11 @@ namespace TransactionApi.Services
                 }
                 sqlReader.Close();
             }
-            return transactionList
-                .Select(x => setToClientDateTime(x));
+            return transactionList;
         }
-
-        public IEnumerable<Transaction> GetTransactions2023()
-        {
-            var transactionList = new List<Transaction>();
-            using (SqlConnection connection = new SqlConnection(_connectionString))
-            {
-                connection.Open();
-
-                SqlCommand getCommand = SqlQueries.GetTransactions2023(connection);
-                var sqlReader = getCommand.ExecuteReader();
-                while (sqlReader.Read())
-                {
-                    transactionList.Add(GetTransactionFromRow(sqlReader));
-                }
-                sqlReader.Close();
-            }
-            return transactionList
-                .Select(x => setToClientDateTime(x));
-        }
-
-        public IEnumerable<Transaction> GetTransactions2023InUserTimeZone()
-        {
-            var transactionList = new List<Transaction>();
-            using (SqlConnection connection = new SqlConnection(_connectionString))
-            {
-                connection.Open();
-
-                SqlCommand getCommand = SqlQueries.GetTransactions2023(connection);
-                var sqlReader = getCommand.ExecuteReader();
-                while (sqlReader.Read())
-                {
-                    transactionList.Add(GetTransactionFromRow(sqlReader));
-                }
-                sqlReader.Close();
-            }
-            return transactionList
-                .Select(x => setToApiUserDateTime(x))
-                .Where(y => y.TransactionDate.Year == 2023);
-        }
-
-        public IEnumerable<Transaction> GetTransactionsJanuary2024InUserTimeZone()
-        {
-            var transactionList = new List<Transaction>();
-            using (SqlConnection connection = new SqlConnection(_connectionString))
-            {
-                connection.Open();
-
-                SqlCommand getCommand = SqlQueries.GetTransactionsJanuary2024(connection);
-                var sqlReader = getCommand.ExecuteReader();
-                while (sqlReader.Read())
-                {
-                    transactionList.Add(GetTransactionFromRow(sqlReader));
-                }
-                sqlReader.Close();
-            }
-
-            return transactionList
-                .Select(x => setToApiUserDateTime(x))
-                .Where(x => x.TransactionDate.Year == 2024)
-                .Where(x => x.TransactionDate.Month == 1);
-        }
-
-        public IEnumerable<Transaction> GetTransactionsJanuary2024()
-        {
-            var transactionList = new List<Transaction>();
-            using (SqlConnection connection = new SqlConnection(_connectionString))
-            {
-                connection.Open();
-
-                SqlCommand getCommand = SqlQueries.GetTransactionsJanuary2024(connection);
-                var sqlReader = getCommand.ExecuteReader();
-                while (sqlReader.Read())
-                {
-                    transactionList.Add(GetTransactionFromRow(sqlReader));
-                }
-                sqlReader.Close();
-            }
-
-            return transactionList
-                .Select(x => setToClientDateTime(x));
-
-        }
-
+       
         private Transaction GetTransactionFromRow(SqlDataReader sqlReader)
         {
-            var tt = sqlReader.GetString(5);
             return new Transaction
             {
                 Id = sqlReader.GetString(0),
@@ -126,24 +91,10 @@ namespace TransactionApi.Services
                 Email = sqlReader.GetString(2),
                 Amount = sqlReader.GetDouble(3),
                 TransactionDate = sqlReader.GetDateTime(4),
-                Location = sqlReader.GetString(5),
-                TimeZone = sqlReader.GetString(6),
+                Location = sqlReader.GetString(6),
+                TimeZone = sqlReader.GetString(7),
             };
         }
-        Transaction setToClientDateTime(Transaction transaction)
-        {
-            int hours = DateTimeZoneProviders.Tzdb.GetZoneOrNull(transaction.TimeZone).MaxOffset.ToTimeSpan().Hours;
-            transaction.TransactionDate = transaction.TransactionDate.AddHours(hours);
-            return transaction;
-        }
-
-        Transaction setToApiUserDateTime(Transaction transaction)
-        {
-            int hours = DateTimeZoneProviders.Tzdb.GetSystemDefault().MaxOffset.ToTimeSpan().Hours;
-            int minHours = DateTimeZoneProviders.Tzdb.GetSystemDefault().MinOffset.ToTimeSpan().Hours;
-            transaction.TransactionDate = transaction.TransactionDate.AddHours(hours);
-            return transaction;
-        }
-
+       
     }
 }
